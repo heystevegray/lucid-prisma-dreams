@@ -1,34 +1,67 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+- [Overview](#overview)
+  - [Supported Lucidchart Shapes](#supported-lucidchart-shapes)
+    - [Entity Relationship (2 columns)](#entity-relationship-2-columns)
+      - [Shape Structure](#shape-structure)
+      - [Example](#example)
 
-## Getting Started
+# Overview
 
-First, run the development server:
+[Lucidchart](https://lucid.co/product/lucidchart) allows you to create an [Entity Relationship Diagram (ERD)](https://www.lucidchart.com/pages/er-diagrams), which is a great way to visualize and mange your [database schema](https://www.lucidchart.com/pages/database-diagram/database-schema). It also allows you to export your ERD as a "CSV of Shape Data" CSV file.
 
-```bash
-npm run dev
-# or
-yarn dev
+[Prisma](https://www.prisma.io/) is an [ORM](https://www.prisma.io/docs/concepts/overview/prisma-in-your-stack/is-prisma-an-orm#what-are-orms) for [Node.js](https://nodejs.org/en/) and [TypeScript](https://www.typescriptlang.org/), and it's been an awesome developer experience for me personally.
+
+This app will take a Lucidchart "CSV of Shape Data" file as input, and output a [Prisma Schema file](https://www.prisma.io/docs/concepts/components/prisma-schema) 😎. Before the `schema.prisma` file is returned, [prisma format](https://www.prisma.io/docs/reference/api-reference/command-reference#format) is run against the file.
+
+## Supported Lucidchart Shapes
+
+### Entity Relationship (2 columns)
+
+Create a 2 column Shape in your Lucidchart ERD.
+
+#### Shape Structure
+
+The label in the header section of the Lucidchart Shape will be the **table name**. The first column should be the database **column name** ([prisma field](https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference/#model-fields)), and the second column should be it's [data type](https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference/#model-field-scalar-types).
+
+#### Example
+
+Let's create a `Member` and a `Group` model. A `Group` has many `Members`, and a `Member` has one `Group`.
+
+Here is the `Member` model in Lucidchart.
+| Member | |
+| --------- | -------- |
+| id | Int |
+| name | String |
+| birthDate | DateTime |
+| accepted | Boolean |
+
+Here is the `Group` model in Lucidchart.
+| Group | |
+| ------- | -------- |
+| id | Int |
+| name | String |
+| members | Member[] |
+
+The models above are then converted to the following [Prisma models](https://www.prisma.io/docs/concepts/components/prisma-schema/data-model). If you have a field called `id` the `@id @default(autoincrement())` attribute will automatically be included.
+
+```ts
+model Member {
+  id        Int    @id @default(autoincrement())
+  firstName String
+  lastName  String
+  nickname  String
+  Group     Group? @relation(fields: [groupId], references: [id])
+  groupId   Int?
+}
+
+model Group {
+  id      Int      @id @default(autoincrement())
+  name    String
+  members Member[]
+}
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+I can't take all the credit though, `prisma format` also
 
-You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
+> Formats the Prisma schema file, which includes validating, formatting, and persisting the schema. | [Source](https://www.prisma.io/docs/reference/api-reference/command-reference#format)
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.js`.
-
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+Much love to them.

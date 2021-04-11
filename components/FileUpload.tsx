@@ -5,63 +5,77 @@ import { makeStyles } from '@material-ui/core/styles';
 import axios from 'axios';
 
 const useStyles = makeStyles((theme) => ({
-  root: {
-    minHeight: 300,
-    border: `2px dashed ${theme.palette.primary.main}`,
-    padding: theme.spacing(3),
-  },
+	root: {
+		minHeight: 300,
+		border: `2px dashed ${theme.palette.primary.main}`,
+		padding: theme.spacing(3),
+	},
 }));
 
+function downloadFile(data, name = 'schema.prisma') {
+	const type = 'csv';
+	let blob = new Blob([data], { type });
+	let url = window.URL.createObjectURL(blob);
+
+	var link = document.createElement('a');
+	// If you don't know the name or want to use
+	// the webserver default set name = ''
+	link.setAttribute('download', name);
+	link.href = url;
+	document.body.appendChild(link);
+	link.click();
+	link.remove();
+}
+
 const onDrop = async (
-  acceptedFiles: any[],
-  fileRejections: FileRejection[],
-  event: DropEvent
+	acceptedFiles: any[],
+	fileRejections: FileRejection[],
+	event: DropEvent
 ): Promise<void> => {
-  console.log(acceptedFiles);
+	console.log(acceptedFiles);
 
-  if (!acceptedFiles?.length) {
-    return;
-  }
+	if (!acceptedFiles?.length) {
+		return;
+	}
 
-  try {
-    const config = {
-      headers: { 'content-type': 'multipart/form-data' },
-      onUploadProgress: (event) => {
-        console.log(
-          `Current progress:`,
-          Math.round((event.loaded * 100) / event.total)
-        );
-      },
-    };
+	try {
+		const config = {
+			headers: { 'content-type': 'multipart/form-data' },
+			onUploadProgress: (event) => {
+				console.log(
+					`Current progress:`,
+					Math.round((event.loaded * 100) / event.total)
+				);
+			},
+		};
 
-    const formData = new FormData();
+		const formData = new FormData();
 
-    formData.append('uploaded_file', acceptedFiles[0]);
+		formData.append('uploaded_file', acceptedFiles[0]);
 
-    const response = await axios.post('/api/upload', formData, config);
-
-    console.log('response', response.data);
-  } catch (error) {
-    console.log(error);
-  }
+		const response = await axios.post('/api/upload', formData, config);
+		downloadFile(response.data);
+	} catch (error) {
+		console.log(error);
+	}
 };
 
 export default function FileUpload() {
-  const classes = useStyles();
-  return (
-    <Grid container justify="center" alignItems="center">
-      <Grid item className={classes.root}>
-        <Dropzone onDrop={onDrop} accept=".csv" maxFiles={2}>
-          {({ getRootProps, getInputProps }) => (
-            <section>
-              <div {...getRootProps()}>
-                <input {...getInputProps()} />
-                <p>Drag 'n' drop your file here, or click to select files</p>
-              </div>
-            </section>
-          )}
-        </Dropzone>
-      </Grid>
-    </Grid>
-  );
+	const classes = useStyles();
+	return (
+		<Grid container justify="center" alignItems="center">
+			<Grid item className={classes.root}>
+				<Dropzone onDrop={onDrop} accept=".csv" maxFiles={2}>
+					{({ getRootProps, getInputProps }) => (
+						<section>
+							<div {...getRootProps()}>
+								<input {...getInputProps()} />
+								<p>Drag 'n' drop your file here, or click to select files</p>
+							</div>
+						</section>
+					)}
+				</Dropzone>
+			</Grid>
+		</Grid>
+	);
 }

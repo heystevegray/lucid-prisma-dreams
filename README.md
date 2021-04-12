@@ -26,20 +26,7 @@ The label in the header section of the Lucidchart Shape will be the **table name
 
 Let's create a `Member` and a `Group` model. A `Group` has many `Members`, and a `Member` has one `Group`.
 
-Here is the `Member` model in Lucidchart.
-| Member | |
-| --------- | -------- |
-| id | Int |
-| name | String |
-| birthDate | DateTime |
-| accepted | Boolean |
-
-Here is the `Group` model in Lucidchart.
-| Group | |
-| ------- | -------- |
-| id | Int |
-| name | String |
-| members | Member[] |
+![Lucid Chart Members and Group](assets/lucid-chart-demo.png)
 
 The models above are then converted to the following [Prisma models](https://www.prisma.io/docs/concepts/components/prisma-schema/data-model). If you have a field called `id` the `@id @default(autoincrement())` attribute will automatically be included.
 

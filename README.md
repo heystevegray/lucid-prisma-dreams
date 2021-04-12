@@ -1,8 +1,8 @@
 - [Overview](#overview)
-  - [Supported Lucidchart Shapes](#supported-lucidchart-shapes)
-    - [Entity Relationship (2 columns)](#entity-relationship-2-columns)
-      - [Shape Structure](#shape-structure)
-      - [Example](#example)
+	- [Supported Lucidchart Shapes](#supported-lucidchart-shapes)
+		- [Entity Relationship (2 columns)](#entity-relationship-2-columns)
+			- [Shape Structure](#shape-structure)
+			- [Example](#example)
 
 # Overview
 
@@ -45,11 +45,11 @@ The models above are then converted to the following [Prisma models](https://www
 
 ```ts
 model Member {
-  id        Int    @id @default(autoincrement())
-  firstName String
-  lastName  String
-  nickname  String
-  Group     Group? @relation(fields: [groupId], references: [id])
+  id        Int      @id @default(autoincrement())
+  name      String
+  birthDate DateTime
+  accepted  Boolean
+  Group     Group?   @relation(fields: [groupId], references: [id])
   groupId   Int?
 }
 

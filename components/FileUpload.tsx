@@ -7,7 +7,7 @@ import ProgressBar from './ProgressBar'
 
 const useStyles = makeStyles((theme) => ({
 	root: {
-		minHeight: 300,
+		// minHeight: 300,
 		border: `2px dashed ${theme.palette.primary.main}`,
 		padding: theme.spacing(3),
 	},

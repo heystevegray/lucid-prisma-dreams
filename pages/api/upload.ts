@@ -3,7 +3,7 @@ import multer from 'multer';
 import fs from 'fs';
 import { NextApiRequest, NextApiResponse } from 'next';
 import {
-	inputFile,
+	csvFile,
 	lucidToPrisma,
 	destinationFolder,
 	schemaFile,
@@ -12,14 +12,14 @@ import {
 const upload = multer({
 	storage: multer.diskStorage({
 		destination: destinationFolder,
-		filename: (req, file, cb) => cb(null, inputFile),
+		filename: (req, file, cb) => cb(null, csvFile),
 	}),
 });
 
 const apiRoute = mc<NextApiRequest, NextApiResponse>({
 	onError(error, req, res) {
 		res.status(501).json({
-			error: `Sorry something Happened! ${error.message}`,
+			error: `Error! ${error.message}`,
 		});
 	},
 	onNoMatch(req, res) {

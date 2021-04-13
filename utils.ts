@@ -1,8 +1,8 @@
 import csv from 'csv-parser';
-import { createReadStream, promises as fs } from 'fs';
+import { createReadStream, promises as fs, unlink } from 'fs';
 import { exec } from 'child_process';
 export const destinationFolder = './public/uploads';
-export const inputFile = `data.csv`;
+export const csvFile = `data.csv`;
 export const schemaFile = 'schema.prisma';
 
 const results = [];
@@ -11,6 +11,7 @@ const ENTITY_RELATIONSHIP = 'Entity Relationship';
 const TABLE_NAME = 'Text Area 1';
 const TEXT_AREA = 'Text Area';
 const ID = 'id';
+const inputFile = `${destinationFolder}/${csvFile}`
 const outputFile = `${destinationFolder}/${schemaFile}`;
 
 type LucidChart = {
@@ -49,7 +50,7 @@ const convertLucidToPrisma = (lucidRow: LucidChartCSVRow): string => {
 	return model;
 };
 
-const generatePrismaSchema = async (schema: string[]) => {
+const generatePrismaSchema = async (schema: string[]): Promise<void> => {
 	await fs.writeFile(outputFile, schema.join('\n\n'), 'utf8');
 	console.log(`Successfully created ${outputFile}`);
 };
@@ -100,29 +101,47 @@ const parseLucidChart = (): string[] => {
 	return schema;
 };
 
-const format = (): void => {
+const format = async (): Promise<void> => {
 	console.log(`Running prisma format 😎`);
+	return new Promise((resolve, reject) => {
+		try {
+			exec('npm run prisma:format', (error, stdout, stderr) => {
+				if (error) {
+					console.log(`${error.message}`);
+					reject(error.message)
+					return;
+				}
+				if (stderr) {
+					console.log(`${stderr}`);
+					reject(stderr)
+					return;
+				}
+				console.log(`${stdout}`);
+				resolve()
+			});
+		} catch (error) {
+			reject(error)
+		}
+	})
+}
 
-	exec('npm run prisma:format', (error, stdout, stderr) => {
-		if (error) {
-			console.log(`${error.message}`);
-			return;
-		}
-		if (stderr) {
-			console.log(`${stderr}`);
-			return;
-		}
-		console.log(`${stdout}`);
-	});
-};
+const cleanup = async (): Promise<void> => {
+	unlink(inputFile, () => console.log(`Deleted ${inputFile}`))
+	unlink(outputFile, () => console.log(`Deleted ${outputFile}`))
+}
 
 export const lucidToPrisma = async (): Promise<void> => {
-	createReadStream(`${destinationFolder}/${inputFile}`)
-		.pipe(csv())
-		.on('data', (data) => results.push(data))
-		.on('end', async () => {
-			const schema = parseLucidChart();
-			await generatePrismaSchema(schema);
-			format();
-		});
+	return new Promise((resolve, reject) => {
+		createReadStream(`${inputFile}`)
+			.pipe(csv())
+			.on('data', (data) => results.push(data))
+			.on('error', (error) => reject(error))
+			.on('end', async () => {
+				const schema = parseLucidChart();
+				await generatePrismaSchema(schema);
+				await format();
+				// await cleanup()
+				resolve()
+			})
+	})
 };

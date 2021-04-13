@@ -4,15 +4,9 @@ import FileUpload from '../components/FileUpload';
 
 const useStyles = makeStyles((theme) => ({
 	root: {
-		height: '100vh',
-		display: 'grid',
-		gridTemplateRows: '.25fr 1fr',
-		padding: theme.spacing(3),
-	},
-	upload: {
 		height: '100%',
 		display: 'grid',
-		gridTemplateRows: 'auto 1fr',
+		gridTemplateRows: '.25fr 1fr',
 		padding: theme.spacing(3),
 	},
 }));

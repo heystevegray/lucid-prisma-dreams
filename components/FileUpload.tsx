@@ -1,4 +1,4 @@
-import { Grid } from '@material-ui/core';
+import { Grid, Typography } from '@material-ui/core';
 import React, { useEffect, useState } from 'react';
 import Dropzone, { DropEvent, FileRejection } from 'react-dropzone';
 import { makeStyles } from '@material-ui/core/styles';
@@ -19,12 +19,11 @@ const useStyles = makeStyles((theme) => ({
 export default function FileUpload() {
 	const classes = useStyles();
 	const [progress, setProgress] = useState(0)
-
-	useEffect(() => {
-		setProgress(0)
-	}, [])
+	const [message, setMessage] = useState('')
 
 	const downloadFile = (data: string, name = 'schema.prisma'): void => {
+		setMessage(`Downloading your schema.prisma file, please hold 😎`)
+
 		const type = 'csv';
 		let blob = new Blob([data], { type });
 		let url = window.URL.createObjectURL(blob);
@@ -37,6 +36,16 @@ export default function FileUpload() {
 		document.body.appendChild(link);
 		link.click();
 		link.remove();
+		setTimeout(() => {
+			setProgress(0)
+			setMessage('🤯 Now buy me coffee 😏')
+		}, 2500)
+	}
+
+	const reset = () => {
+		// Reset progress bar
+		setProgress(0)
+		setMessage('')
 	}
 
 	const onDrop = async (
@@ -50,8 +59,8 @@ export default function FileUpload() {
 			return;
 		}
 
-		// Reset progress bar
-		setProgress(0)
+		reset()
+		setMessage("One schema.prisma file, coming up!")
 
 		try {
 			const config = {
@@ -62,9 +71,7 @@ export default function FileUpload() {
 			};
 
 			const formData = new FormData();
-
 			formData.append('uploaded_file', acceptedFiles[0]);
-
 			const response = await axios.post('/api/upload', formData, config);
 			downloadFile(response.data);
 		} catch (error) {
@@ -74,6 +81,9 @@ export default function FileUpload() {
 
 	return (
 		<Grid container justify="center" alignItems="center" direction="column">
+			<Grid item>
+				<Typography>{message}</Typography>
+			</Grid>
 			<Grid item className={classes.progress}>
 				<ProgressBar value={progress} />
 			</Grid>

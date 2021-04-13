@@ -5,6 +5,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import {
 	csvFile,
 	lucidToPrisma,
+	cleanup,
 	destinationFolder,
 	schemaFile,
 } from '../../utils';
@@ -46,6 +47,15 @@ apiRoute.post(async (req, res) => {
 	var readStream = fs.createReadStream(filePath);
 	// We replaced all the event handlers with a simple call to readStream.pipe()
 	readStream.pipe(res);
+
+	readStream.on('end', async () => {
+		console.log("Stream is donzo");
+		await cleanup()
+	})
+
+	readStream.on('error', async () => {
+		await cleanup()
+	})
 });
 
 export default apiRoute;

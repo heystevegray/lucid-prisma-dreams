@@ -1,11 +1,10 @@
 import csv from 'csv-parser';
-import { createReadStream, promises as fs, unlink } from 'fs';
+import { createReadStream, promises as fs, unlinkSync, existsSync } from 'fs';
 import { exec } from 'child_process';
 export const destinationFolder = './public/uploads';
 export const csvFile = `data.csv`;
 export const schemaFile = 'schema.prisma';
 
-const results = [];
 const SHAPE_LIBRARY = 'Shape Library';
 const ENTITY_RELATIONSHIP = 'Entity Relationship';
 const TABLE_NAME = 'Text Area 1';
@@ -51,11 +50,11 @@ const convertLucidToPrisma = (lucidRow: LucidChartCSVRow): string => {
 };
 
 const generatePrismaSchema = async (schema: string[]): Promise<void> => {
-	await fs.writeFile(outputFile, schema.join('\n\n'), 'utf8');
+	await fs.writeFile(outputFile, schema.join('\n\n'));
 	console.log(`Successfully created ${outputFile}`);
 };
 
-const parseLucidChart = (): string[] => {
+const parseLucidChart = (results: LucidChart[]): string[] => {
 	const schema = [];
 	for (let index = 0; index < results.length; index++) {
 		const row = results[index] as LucidChart;
@@ -125,22 +124,37 @@ const format = async (): Promise<void> => {
 	})
 }
 
-const cleanup = async (): Promise<void> => {
-	unlink(inputFile, () => console.log(`Deleted ${inputFile}`))
-	unlink(outputFile, () => console.log(`Deleted ${outputFile}`))
+export const cleanup = async (): Promise<void> => {
+	return new Promise((resolve, reject) => {
+		try {
+			if (existsSync(inputFile)) {
+				unlinkSync(inputFile)
+				console.log(`Deleted ${inputFile}`)
+			}
+
+			if (existsSync(outputFile)) {
+				unlinkSync(outputFile)
+				console.log(`Deleted ${outputFile}`)
+			}
+			resolve()
+		} catch (error) {
+			console.log(error);
+			reject(error)
+		}
+	})
 }
 
 export const lucidToPrisma = async (): Promise<void> => {
+	const results: LucidChart[] = []
 	return new Promise((resolve, reject) => {
 		createReadStream(`${inputFile}`)
 			.pipe(csv())
 			.on('data', (data) => results.push(data))
 			.on('error', (error) => reject(error))
 			.on('end', async () => {
-				const schema = parseLucidChart();
+				const schema = parseLucidChart(results);
 				await generatePrismaSchema(schema);
 				await format();
-				// await cleanup()
 				resolve()
 			})
 	})

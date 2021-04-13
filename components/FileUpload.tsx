@@ -1,8 +1,9 @@
 import { Grid } from '@material-ui/core';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Dropzone, { DropEvent, FileRejection } from 'react-dropzone';
 import { makeStyles } from '@material-ui/core/styles';
 import axios from 'axios';
+import ProgressBar from './ProgressBar'
 
 const useStyles = makeStyles((theme) => ({
 	root: {
@@ -27,43 +28,52 @@ function downloadFile(data, name = 'schema.prisma') {
 	link.remove();
 }
 
-const onDrop = async (
-	acceptedFiles: any[],
-	fileRejections: FileRejection[],
-	event: DropEvent
-): Promise<void> => {
-	console.log(acceptedFiles);
-
-	if (!acceptedFiles?.length) {
-		return;
-	}
-
-	try {
-		const config = {
-			headers: { 'content-type': 'multipart/form-data' },
-			onUploadProgress: (event) => {
-				console.log(
-					`Current progress:`,
-					Math.round((event.loaded * 100) / event.total)
-				);
-			},
-		};
-
-		const formData = new FormData();
-
-		formData.append('uploaded_file', acceptedFiles[0]);
-
-		const response = await axios.post('/api/upload', formData, config);
-		downloadFile(response.data);
-	} catch (error) {
-		console.log(error);
-	}
-};
-
 export default function FileUpload() {
 	const classes = useStyles();
+	const [progress, setProgress] = useState(0)
+
+	useEffect(() => {
+		setProgress(0)
+	}, [])
+
+	const onDrop = async (
+		acceptedFiles: any[],
+		fileRejections: FileRejection[],
+		event: DropEvent
+	): Promise<void> => {
+		console.log(acceptedFiles);
+
+		if (!acceptedFiles?.length) {
+			return;
+		}
+
+		// Reset progress bar
+		setProgress(0)
+
+		try {
+			const config = {
+				headers: { 'content-type': 'multipart/form-data' },
+				onUploadProgress: (event) => {
+					setProgress(Math.round((event.loaded * 100) / event.total))
+				},
+			};
+
+			const formData = new FormData();
+
+			formData.append('uploaded_file', acceptedFiles[0]);
+
+			const response = await axios.post('/api/upload', formData, config);
+			downloadFile(response.data);
+		} catch (error) {
+			console.log(error);
+		}
+	};
+
 	return (
-		<Grid container justify="center" alignItems="center">
+		<Grid container justify="center" alignItems="center" direction="column">
+			<Grid item>
+				<ProgressBar value={progress} />
+			</Grid>
 			<Grid item className={classes.root}>
 				<Dropzone onDrop={onDrop} accept=".csv" maxFiles={2}>
 					{({ getRootProps, getInputProps }) => (

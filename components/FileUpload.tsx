@@ -11,22 +11,10 @@ const useStyles = makeStyles((theme) => ({
 		border: `2px dashed ${theme.palette.primary.main}`,
 		padding: theme.spacing(3),
 	},
+	progress: {
+		margin: theme.spacing(3)
+	}
 }));
-
-function downloadFile(data, name = 'schema.prisma') {
-	const type = 'csv';
-	let blob = new Blob([data], { type });
-	let url = window.URL.createObjectURL(blob);
-
-	var link = document.createElement('a');
-	// If you don't know the name or want to use
-	// the webserver default set name = ''
-	link.setAttribute('download', name);
-	link.href = url;
-	document.body.appendChild(link);
-	link.click();
-	link.remove();
-}
 
 export default function FileUpload() {
 	const classes = useStyles();
@@ -35,6 +23,21 @@ export default function FileUpload() {
 	useEffect(() => {
 		setProgress(0)
 	}, [])
+
+	const downloadFile = (data: string, name = 'schema.prisma'): void => {
+		const type = 'csv';
+		let blob = new Blob([data], { type });
+		let url = window.URL.createObjectURL(blob);
+
+		var link = document.createElement('a');
+		// If you don't know the name or want to use
+		// the webserver default set name = ''
+		link.setAttribute('download', name);
+		link.href = url;
+		document.body.appendChild(link);
+		link.click();
+		link.remove();
+	}
 
 	const onDrop = async (
 		acceptedFiles: any[],
@@ -71,7 +74,7 @@ export default function FileUpload() {
 
 	return (
 		<Grid container justify="center" alignItems="center" direction="column">
-			<Grid item>
+			<Grid item className={classes.progress}>
 				<ProgressBar value={progress} />
 			</Grid>
 			<Grid item className={classes.root}>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import App from '../components/App';
 import { createMuiTheme, makeStyles, Paper, ThemeProvider } from '@material-ui/core';
 
@@ -20,6 +20,14 @@ const useStyles = makeStyles(() => ({
 
 export default function Index() {
 	const classes = useStyles()
+
+	useEffect(() => {
+		const jssStyles = document.querySelector('#jss-server-side');
+		if (jssStyles) {
+			jssStyles.parentElement.removeChild(jssStyles);
+		}
+	}, []);
+
 	return (
 		<ThemeProvider theme={theme}>
 			<Paper square className={classes.root}>

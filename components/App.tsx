@@ -16,7 +16,7 @@ export default function App() {
 	const classes = useStyles();
 	return (
 		<Grid container spacing={3} className={classes.root} justify="center" direction="row">
-			<Grid container item xs={12} alignItems="center">
+			<Grid container item xs={12} alignItems="center" justify="center">
 				<Typography>
 					Upload a Lucidchart "CSV of Shape Data" CSV file
 				</Typography>
